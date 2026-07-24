@@ -1,8 +1,8 @@
-# QuantForge ↔ ChainVenue integration (planned)
+# CLOB book feed ↔ ChainVenue
 
-Sibling project: [QuantForge](https://github.com/Wojtek-06/QuantForge) at `C:\Projekty\Quant\QuantForge`.
+**QuantForge (Project 1) is done.** ChainVenue treats it as a finished sibling that *can* emit book metrics; this repo does **not** modify QuantForge and does not block on further QF work.
 
-ChainVenue does **not** vendor or modify QuantForge in the MVP. Integration is adapter-shaped so the CLOB remains the off-chain venue of record.
+Day-to-day ChainVenue development uses **synthetic / JSON** snapshots with the same field shape (`mid`, `inventory`, …).
 
 ## What QuantForge provides (reference)
 
@@ -11,23 +11,76 @@ ChainVenue does **not** vendor or modify QuantForge in the MVP. Integration is a
 | C++ LOB matching + queue position | Fair mid / microprice / inventory inputs |
 | Avellaneda–Stoikov-style quoting | Cross-venue quote skew vs AMM implied price |
 | Kill switch / risk gates | Shared semantics with `KillSwitch` + `CrossVenueAdapter` |
-| Python research API (`quantforge`, FastAPI) | Push `IClobVenue.BookSnapshot` onto Anvil stub |
+| Python research API (`quantforge`, FastAPI) | Feed `BookSnapshot` into `ClobVenueStub` |
 
-## MVP surfaces already in this repo
+## On-chain surfaces
 
-- `IClobVenue` — normalized book snapshot (`bestBid`/`bestAsk`/`mid`/`microprice`/`inventoryBase`/`ts`)
-- `ICrossVenueAdapter` / `CrossVenueAdapter` — hedge intent + idempotency + freshness guards
+- `IClobVenue` / `ClobVenueStub` — normalized book snapshot
 - `KillSwitch` — guardian-gated halt
-- `ClobVenueStub` — Anvil-side snapshot holder awaiting an off-chain pusher
+- `CrossVenueAdapter` — basis check, inventory/gas/slippage/profit guards, **executes** `swapExactIn`
+- Hedge only when `|AMM spot − CLOB mid| ≥ minBasisBps` and direction matches the rich AMM leg
 
-## Integration phases
+### Mid convention
 
-1. **Now (MVP):** Foundry lab + CPAMM + Python differential model + adapter stubs.
-2. **Next:** Python service reads QuantForge sim/metrics and `pushSnapshot` via Cast/web3 to Anvil.
-3. **Capstone:** Quote engine compares CLOB mid/microprice to AMM `reserve1/reserve0`, proposes hedges through the adapter with slippage/gas/profit guards; end-to-end P&L + gas accounting.
+`BookSnapshot.mid` = **token1 per token0**, 1e18-scaled (WAD).  
+AMM spot = `reserve1 * 1e18 / reserve0`.
+
+| Basis | Meaning | Hedge side |
+|-------|---------|------------|
+| `ammSpot > mid` (positive) | AMM overvalues token0 | Sell token0 on AMM |
+| `ammSpot < mid` (negative) | AMM undervalues token0 | Sell token1 on AMM |
+
+## Off-chain bridge (`python/bridge/`)
+
+```bash
+cd python
+python -c "from bridge import BookSnapshot, decide_hedge; \
+snap=BookSnapshot.from_mid(mid=int(0.95e18), ts=1700000000); \
+print(decide_hedge(reserve0=10**20, reserve1=10**20, fee_bps=30, snap=snap, amount_in=10**18, now_ts=1700000000))"
+```
+
+Push a snapshot to Anvil (command builder only — review before running):
+
+```python
+from bridge import BookSnapshot, cast_push_snapshot_cmd
+snap = BookSnapshot.from_mid(mid=10**18, ts=1700000000, inventory_base=0)
+print(cast_push_snapshot_cmd("0xYourClobStub", snap, private_key="0x..."))
+```
+
+Wire QuantForge later by mapping sim metrics → `BookSnapshot` fields (`mid`, `microprice`, `inventory_base`, `ts`).
+
+## E2E demo (misprice → hedge → P&L)
+
+```bash
+# Offline (CI-safe) — synthetic / JSON QuantForge-shaped mid
+cd python
+python demo/e2e_hedge.py sim --mid 0.95 --no-native
+python demo/e2e_hedge.py sim --json fixtures/qf_metrics_sample.json --no-native
+
+# Local Anvil
+anvil   # terminal A
+# terminal B:
+forge script script/DemoHedge.s.sol:DemoHedgeScript --rpc-url http://127.0.0.1:8545 --broadcast -vv
+# or:
+python demo/e2e_hedge.py anvil
+
+# Synthetic snapshot feed (optional cast push once you have a clob stub address)
+python demo/e2e_hedge.py feed --steps 3
+python demo/e2e_hedge.py feed --steps 1 --clob-stub 0xYourClobStub
+```
+
+`python/bridge/quantforge_feed.py` maps QuantForge-like JSON (`mid` / `inventory` / …) and will use native `quantforge` if that package is importable — never required.
+
+## ChainVenue build status
+
+1. ~~Foundry lab + CPAMM + Python differential + adapter stubs~~
+2. ~~Guarded hedge execution + Python quote engine + adversarial sims~~
+3. ~~Snapshot feed + E2E sim / Anvil `DemoHedge` (gross + gas-net logs)~~
+4. ~~Two-pool arb executor + oracle lab + IL sandbox~~
+5. **Next (ChainVenue-only):** evidence pack polish (swap trace write-up, adversarial report), optional inclusion/reorg sims
 
 ## Non-goals
 
 - Rewriting the LOB inside Solidity
 - Absorbing Fitness-App
-- Live mainnet MEV
+- Live mainnet MEV / sandwiches against real users

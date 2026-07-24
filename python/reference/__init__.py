@@ -10,6 +10,8 @@ from .cpamm import (
     spot_price_x_per_y,
     sqrt,
 )
+from .il_sim import LpPosition, LpReport, bootstrap_position, simulate_il
+from .two_pool_arb import ArbOpportunity, PoolState, search_two_pool_arb
 
 __all__ = [
     "FEE_DENOMINATOR",
@@ -22,4 +24,11 @@ __all__ = [
     "quote",
     "spot_price_x_per_y",
     "sqrt",
+    "LpPosition",
+    "LpReport",
+    "bootstrap_position",
+    "simulate_il",
+    "ArbOpportunity",
+    "PoolState",
+    "search_two_pool_arb",
 ]

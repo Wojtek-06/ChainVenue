@@ -41,6 +41,8 @@ contract DeployLabScript is Script {
         KillSwitch ks = new KillSwitch(deployer);
         ClobVenueStub clob = new ClobVenueStub(deployer);
         CrossVenueAdapter adapter = new CrossVenueAdapter(clob, ks, deployer);
+        tokenA.approve(address(adapter), type(uint256).max);
+        tokenB.approve(address(adapter), type(uint256).max);
 
         vm.stopBroadcast();
 

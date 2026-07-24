@@ -9,7 +9,7 @@ ffi = false
 fs_permissions = [{ access = "read", path = "./python" }]
 
 # Gas reporting for lab + AMM hot paths
-gas_reports = ["ConstantProductAMM", "EvmStorageLab", "EvmMemoryLab"]
+gas_reports = ["ConstantProductAMM", "EvmStorageLab", "EvmMemoryLab", "AtomicArbExecutor", "CrossVenueAdapter"]
 
 [profile.default.fuzz]
 runs = 256

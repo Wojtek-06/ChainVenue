@@ -1,6 +1,8 @@
 # ChainVenue
 
-Cross-venue **CLOB–AMM** laboratory: Foundry-tested EVM mechanics + constant-product AMM, with a stub adapter toward [QuantForge](https://github.com/Wojtek-06/QuantForge)’s off-chain limit-order-book MM stack.
+[![CI](https://github.com/Wojtek-06/ChainVenue/actions/workflows/ci.yml/badge.svg)](https://github.com/Wojtek-06/ChainVenue/actions/workflows/ci.yml)
+
+Cross-venue **CLOB–AMM** laboratory: Foundry-tested EVM mechanics + constant-product AMM, with a stub adapter toward [QuantForge](https://github.com/Wojtek-06/QuantForge)’s off-chain limit-order-book MM stack (**Project 1 done** — this repo uses synth/JSON book mids).
 
 > Placement pitch: *I understand CLOB vs AMM economics and can ship Foundry-tested contracts with operational risk controls—on Anvil/fork only, not extractive live MEV.*
 
@@ -31,10 +33,11 @@ Cross-venue **CLOB–AMM** laboratory: Foundry-tested EVM mechanics + constant-p
 | `src/lab/` | EVM stack/memory/storage/calldata + call-types + reentrancy demos |
 | `src/amm/ConstantProductAMM.sol` | CPAMM: LP mint/burn, swap, fees |
 | `src/tokens/MockERC20.sol` | Test tokens |
-| `src/adapters/` | `IClobVenue` + hedge adapter stub (QuantForge link later) |
-| `python/reference/` | Reference math + IL helper; vectors for Forge differential tests |
-| `test/` | Unit, fuzz, invariant, lab, adapter, differential |
-| `script/DeployLab.s.sol` | One-shot Anvil deploy |
+| `src/adapters/` | CLOB stub + kill switch + **guarded hedge executor** |
+| `python/reference/` | CPAMM math + IL; vectors for Forge differential tests |
+| `python/bridge/` | Quote engine (basis / sizing) + Cast snapshot helpers |
+| `test/` | Unit, fuzz, invariant, lab, adapter, differential, adversarial |
+| `script/DeployLab.s.sol` / `DeployAMM.s.sol` | Anvil deploys |
 
 Languages: **Solidity 0.8.28 + Foundry** (Forge / Cast / Anvil); **Python** for the AMM reference model and future QuantForge bridges.
 
@@ -61,36 +64,42 @@ forge test -vv
 # Gas report on hot paths
 forge test --gas-report
 
-# Python reference + differential vectors
+# Python reference + quote engine
 python -m pip install -r python/requirements.txt
-python python/cpamm/generate_vectors.py
-python -m pytest python/tests -q
+cd python && python cpamm/generate_vectors.py && python -m pytest -q && cd ..
 ```
 
 CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs Foundry (`fmt` / `build` / `test`) and Python pytest on Ubuntu.
 
 ---
 
-## Anvil demo
+## Demo (misprice → hedge → P&L)
 
 ```bash
+# Offline economics (no chain; CI-safe)
+cd python && python demo/e2e_hedge.py sim --mid 0.95 --no-native
+
+# Anvil end-to-end
 anvil   # terminal A
-forge script script/DeployLab.s.sol:DeployLabScript --rpc-url http://127.0.0.1:8545 --broadcast
+forge script script/DemoHedge.s.sol:DemoHedgeScript --rpc-url http://127.0.0.1:8545 --broadcast -vv
 ```
 
-Details: [`docs/ANVIL.md`](docs/ANVIL.md) · EVM notes: [`docs/EVM_LAB.md`](docs/EVM_LAB.md) · QuantForge link plan: [`docs/QUANTFORGE_INTEGRATION.md`](docs/QUANTFORGE_INTEGRATION.md).
+Details: [`docs/ANVIL.md`](docs/ANVIL.md) · EVM notes: [`docs/EVM_LAB.md`](docs/EVM_LAB.md) · QuantForge bridge: [`docs/QUANTFORGE_INTEGRATION.md`](docs/QUANTFORGE_INTEGRATION.md).
 
 ---
 
 ## MVP status vs placement plan
 
-| Deliverable (Project 2) | This scaffold |
-|-------------------------|---------------|
-| EVM / Foundry laboratory | Done (contracts + tests + notes) |
-| CPAMM + Python differential | Done (Solidity + `python/reference` + vector diff test) |
-| Cross-venue MM + hedge capstone | Stub interfaces + kill switch / freshness / inventory guards |
-| Security & ops pack | Partial (reentrancy demo, invariants, safety policy) |
-| Evidence pack | In progress (CI + docs; demo video later) |
+| Deliverable (Project 2) | Status |
+|-------------------------|--------|
+| EVM / Foundry laboratory | Done |
+| CPAMM + Python differential | Done |
+| Cross-venue MM + hedge | Guarded executor + quote engine + E2E demo (gas-net logs) |
+| AMM sandbox | IL sim, two-pool arb search + `AtomicArbExecutor`, `SpotOracle` lab |
+| Security & ops pack | Kill switch, sandwich/FoT/oracle manip tests, invariants |
+| Evidence pack | CI + docs + demos; short video / trace write-up still open |
+
+QuantForge is a **done sibling** — ChainVenue uses synth/JSON mids with the same book shape.
 
 ---
 

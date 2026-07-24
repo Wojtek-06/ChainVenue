@@ -21,10 +21,13 @@
 |---------|--------|
 | Kill switch on adapter | Implemented (`KillSwitch`) |
 | CLOB snapshot freshness | Implemented (`ClobVenueStub.isFresh`) |
-| Idempotency keys | Implemented on `proposeHedge` |
-| Min-profit / max-slippage / gas guards on executor | Planned (capstone) |
+| Idempotency keys | Implemented on successful `proposeHedge` |
+| Min-profit / max-slippage / gas guards | Implemented on `CrossVenueAdapter` |
+| Basis / wrong-side guards | Implemented (`minBasisBps` + direction) |
+| Sandwich ordering sim (local) | Implemented (`test/adversarial/SandwichSim.t.sol`) |
+| Weird ERC-20 (fee-on-transfer) | Implemented (`test/adversarial/WeirdERC20.t.sol`) |
 | Reorg / inclusion simulation | Planned |
-| Weird ERC-20 / reentrancy attack suite on AMM | Partial (vault lab + AMM unit/fuzz) |
+| QuantForge live snapshot daemon | Planned |
 
 ## Authority
 

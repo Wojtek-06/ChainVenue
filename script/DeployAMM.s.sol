@@ -33,6 +33,10 @@ contract DeployAMM is Script {
         ClobVenueStub clob = new ClobVenueStub(deployer);
         CrossVenueAdapter adapter = new CrossVenueAdapter(clob, ks, deployer);
 
+        // Operator approves adapter to pull hedge notionals.
+        tokenA.approve(address(adapter), type(uint256).max);
+        tokenB.approve(address(adapter), type(uint256).max);
+
         vm.stopBroadcast();
 
         console2.log("tokenA", address(tokenA));
@@ -41,5 +45,8 @@ contract DeployAMM is Script {
         console2.log("killSwitch", address(ks));
         console2.log("clobStub", address(clob));
         console2.log("adapter", address(adapter));
+        console2.log(
+            "hint: push CLOB mid via python/bridge or cast; see docs/QUANTFORGE_INTEGRATION.md"
+        );
     }
 }

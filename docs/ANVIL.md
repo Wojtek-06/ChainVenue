@@ -17,9 +17,14 @@ ChainVenue runs **only** on:
 # Terminal A — local chain
 anvil
 
-# Terminal B — deploy lab + AMM + adapter stub
+# Terminal B — full mispricing → hedge → P&L demo (preferred)
+forge script script/DemoHedge.s.sol:DemoHedgeScript --rpc-url http://127.0.0.1:8545 --broadcast -vv
+
+# Or deploy lab + AMM + adapter stub only
 forge script script/DeployLab.s.sol:DeployLabScript --rpc-url http://127.0.0.1:8545 --broadcast
 ```
+
+Offline Python P&L (no chain): `cd python && python demo/e2e_hedge.py sim --mid 0.95 --no-native`
 
 Default Anvil account #0 private key is baked into the script via `vm.envOr` for local convenience. Override with `PRIVATE_KEY` if needed.
 
@@ -49,9 +54,12 @@ Do not bridge real capital or target third-party wallets.
 
 `CrossVenueAdapter` + `KillSwitch` already expose:
 
-- CLOB freshness checks
-- Idempotency keys
-- Operator-gated propose path
-- Guardian kill switch
+- CLOB freshness + inventory + gas caps
+- Basis / wrong-side guards (`minBasisBps`)
+- Slippage (`minAmountOut`) + profit (`minProfitOut`) guards
+- Idempotency keys (set after successful execute)
+- Operator-gated `proposeHedge` → AMM `swapExactIn`
 
-Next: wire `proposeHedge` → AMM `swapExactIn` under min-profit / max-slippage / gas caps, and reconcile fills vs QuantForge CLOB inventory.
+Off-chain: size hedges with `python/bridge/quote_engine.py`, push mids with `cast_push_snapshot_cmd`.
+
+Next: QuantForge snapshot daemon + fill/P&L reconciliation.

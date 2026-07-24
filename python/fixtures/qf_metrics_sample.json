@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "metrics": {
+      "mid": 0.95,
+      "microprice": 0.951,
+      "inventory": 25,
+      "best_bid": 0.945,
+      "best_ask": 0.955,
+      "spread_bps": 100,
+      "ts": 1700000000
+    }
+  },
+  "notes": "Synthetic QuantForge-shaped payload for ChainVenue bridge tests / demos."
+}
