@@ -23,7 +23,7 @@ contract InclusionReorgTest is Test {
         b.approve(address(pool), type(uint256).max);
         pool.addLiquidity(50_000 ether, 50_000 ether, address(this));
 
-        MockERC20(t0).mint(trader, 1_000 ether);
+        MockERC20(t0).mint(trader, 1000 ether);
         vm.prank(trader);
         MockERC20(t0).approve(address(pool), type(uint256).max);
     }
@@ -35,10 +35,10 @@ contract InclusionReorgTest is Test {
 
         // Competing flow lands first (simulates loser inclusion / mempool delay).
         address competitor = address(0xC0FFEE);
-        MockERC20(t0).mint(competitor, 5_000 ether);
+        MockERC20(t0).mint(competitor, 5000 ether);
         vm.startPrank(competitor);
         MockERC20(t0).approve(address(pool), type(uint256).max);
-        pool.swapExactIn(t0, 2_000 ether, 0, competitor);
+        pool.swapExactIn(t0, 2000 ether, 0, competitor);
         vm.stopPrank();
 
         (uint112 r0b, uint112 r1b,) = pool.getReserves();
@@ -46,7 +46,7 @@ contract InclusionReorgTest is Test {
         assertLt(quoteAfterDelay, quoteAtSignal);
 
         // Trader protected by slippage floor sized at signal time.
-        uint256 minOut = (quoteAtSignal * 9_900) / 10_000;
+        uint256 minOut = (quoteAtSignal * 9900) / 10_000;
         vm.prank(trader);
         vm.expectRevert(ConstantProductAMM.InsufficientOutputAmount.selector);
         pool.swapExactIn(t0, amountIn, minOut, trader);

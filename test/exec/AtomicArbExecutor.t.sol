@@ -44,7 +44,8 @@ contract AtomicArbExecutorTest is Test {
 
     function test_twoPoolArbProfitable() public {
         uint256 balBefore = MockERC20(t0).balanceOf(address(this));
-        uint256 profit = exec.executeTwoPool(address(poolSkewed), address(poolFair), t0, 100 ether, 1, 0);
+        uint256 profit =
+            exec.executeTwoPool(address(poolSkewed), address(poolFair), t0, 100 ether, 1, 0);
         uint256 balAfter = MockERC20(t0).balanceOf(address(this));
         assertGt(profit, 0);
         assertEq(balAfter - balBefore, profit);
