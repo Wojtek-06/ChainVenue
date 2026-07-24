@@ -59,3 +59,14 @@ def test_snapshot_from_float_and_wad_int():
 def test_synthetic_feed_mispriced():
     snap = next(iter_synthetic_snapshots(FeedConfig(misprice_bps=-500)))
     assert snap.mid < WAD
+
+
+def test_ledger_writes_runs(tmp_path: Path):
+    from demo.e2e_hedge import run_ledger
+
+    out = tmp_path / "metrics_ledger.json"
+    ledger = run_ledger(mids=[0.95, 1.0], out_path=out, try_native=False)
+    assert out.is_file()
+    assert len(ledger["runs"]) == 2
+    assert ledger["runs"][0]["should_hedge"] is True
+    assert ledger["runs"][1]["should_hedge"] is False

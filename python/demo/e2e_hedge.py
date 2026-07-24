@@ -55,6 +55,7 @@ class SimResult:
     reserve1_after: int
     source: str
     mid: int
+    mid_float: float | None = None
 
 
 def _resolve_snapshot(
@@ -99,6 +100,8 @@ def run_sim(
     )
     gas_cost = gas_used * gas_price_wei
 
+    mid_float = snap.mid / WAD
+
     if not decision.should_hedge:
         return SimResult(
             mode="sim",
@@ -115,6 +118,7 @@ def run_sim(
             reserve1_after=reserve1,
             source=source,
             mid=snap.mid,
+            mid_float=mid_float,
         )
 
     traded_in = decision.amount_in
@@ -141,7 +145,42 @@ def run_sim(
         reserve1_after=r1,
         source=source,
         mid=snap.mid,
+        mid_float=mid_float,
     )
+
+
+def run_ledger(
+    *,
+    mids: list[float],
+    out_path: Path,
+    try_native: bool = False,
+    gas_used: int = 180_000,
+    gas_price_wei: int = 1_000_000_000,
+) -> dict:
+    """Sweep mids and write a dashboard-friendly metrics ledger JSON."""
+    from datetime import datetime, timezone
+
+    runs = []
+    for mid in mids:
+        result = run_sim(
+            mid=mid,
+            try_native=try_native,
+            gas_used=gas_used,
+            gas_price_wei=gas_price_wei,
+        )
+        row = asdict(result)
+        row["mid_float"] = mid
+        runs.append(row)
+
+    ledger = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "gas_used": gas_used,
+        "gas_price_wei": gas_price_wei,
+        "runs": runs,
+    }
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(ledger, indent=2) + "\n", encoding="utf-8")
+    return ledger
 
 
 def run_anvil(*, rpc_url: str, private_key: str | None) -> int:
@@ -200,6 +239,21 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
+    led_p = sub.add_parser("ledger", help="Sweep mids → metrics_ledger.json for dashboard")
+    led_p.add_argument(
+        "--out",
+        default=str(REPO / "web" / "dashboard" / "metrics_ledger.json"),
+        help="Output JSON path",
+    )
+    led_p.add_argument(
+        "--mids",
+        default="0.90,0.93,0.95,0.97,1.0,1.03,1.05",
+        help="Comma-separated mid floats",
+    )
+    led_p.add_argument("--no-native", action="store_true")
+    led_p.add_argument("--gas-used", type=int, default=180_000)
+    led_p.add_argument("--gas-price-wei", type=int, default=1_000_000_000)
+
     args = p.parse_args(argv)
 
     if args.cmd == "sim":
@@ -217,6 +271,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "feed":
         run_feed(args.steps, args.clob_stub, args.rpc_url, args.private_key)
+        return 0
+
+    if args.cmd == "ledger":
+        mids = [float(x.strip()) for x in args.mids.split(",") if x.strip()]
+        ledger = run_ledger(
+            mids=mids,
+            out_path=Path(args.out),
+            try_native=not args.no_native,
+            gas_used=args.gas_used,
+            gas_price_wei=args.gas_price_wei,
+        )
+        print(json.dumps({"wrote": args.out, "runs": len(ledger["runs"])}, indent=2))
         return 0
 
     return 1

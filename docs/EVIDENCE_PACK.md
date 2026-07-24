@@ -12,10 +12,16 @@ forge test -vv
 cd python
 python demo/e2e_hedge.py sim --mid 0.95 --no-native
 
+# Metrics ledger + static dashboard
+python demo/e2e_hedge.py ledger --out ../web/dashboard/metrics_ledger.json --no-native
+# open web/dashboard/index.html (or any static file server)
+
 # Anvil end-to-end
 anvil   # terminal A
 forge script script/DemoHedge.s.sol:DemoHedgeScript --rpc-url http://127.0.0.1:8545 --broadcast -vv
 ```
+
+Write-ups: [`THREAT_MODEL.md`](THREAT_MODEL.md) · [`LATENCY_FEE_REGIMES.md`](LATENCY_FEE_REGIMES.md).
 
 ## Swap trace walkthrough (interview)
 
@@ -46,8 +52,9 @@ Lab companions: `docs/EVM_LAB.md`, `forge test --match-contract EvmStorageLabTes
 2. EVM lab — packed slot + calldata vs memory gas.
 3. CPAMM invariant — `k` non-decreasing under fee-on-input swaps.
 4. Misprice → hedge — `DemoHedge` / `e2e_hedge.py sim` (basis bps, gross vs fair, gas-net).
-5. Two-pool arb — `AtomicArbExecutor` + Python `search_two_pool_arb`.
-6. Adversarial table above + CI badge.
+5. Dashboard — `web/dashboard` ledger sweep across mids; narrate gross vs net flip.
+6. Two-pool arb — `AtomicArbExecutor` + Python `search_two_pool_arb`.
+7. Threat model / fee regimes docs + adversarial table + CI badge.
 
 ## CI
 

@@ -96,17 +96,22 @@ Details: [`docs/ANVIL.md`](docs/ANVIL.md) · EVM notes: [`docs/EVM_LAB.md`](docs
 | CPAMM + Python differential | Done |
 | Cross-venue MM + hedge | Guarded executor + quote engine + E2E demo (gas-net logs) |
 | AMM sandbox | IL sim, two-pool arb search + `AtomicArbExecutor`, `SpotOracle` lab |
-| Security & ops pack | Kill switch, sandwich/FoT/oracle manip tests, invariants |
-| Evidence pack | CI + docs + demos; short video / trace write-up still open |
+| Security & ops pack | Kill switch, sandwich/FoT/oracle manip tests, invariants, threat model |
+| Evidence pack | CI + docs + metrics dashboard; short screen video still user-owned |
 
 QuantForge is a **done sibling** — ChainVenue uses synth/JSON mids with the same book shape.
+
+Docs: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) · [`docs/LATENCY_FEE_REGIMES.md`](docs/LATENCY_FEE_REGIMES.md) · dashboard [`web/dashboard/`](web/dashboard/).
+
+```bash
+cd python && python demo/e2e_hedge.py ledger --out ../web/dashboard/metrics_ledger.json --no-native
+```
 
 ---
 
 ## Explicit non-goals
 
 - Absorbing Fitness-App
-- Modifying QuantForge (sibling only; optional README link)
 - Public mainnet with real funds
 - Live adversarial MEV against real users
 - Starting AgentGrid from this repo
@@ -115,5 +120,5 @@ QuantForge is a **done sibling** — ChainVenue uses synth/JSON mids with the sa
 
 ## Sibling projects
 
-- **QuantForge** — C++ LOB MM / backtester (CLOB venue this adapter will consume)
+- **QuantForge** — C++ LOB MM / backtester ([repo](https://github.com/Wojtek-06/QuantForge)); mids via synth/JSON
 - **AgentGrid** — not started; later dogfood target
