@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 import {IClobVenue} from "./IClobVenue.sol";
 
-/// @notice Manual snapshot feed for local Anvil experiments (QuantForge bridge later).
+/// @notice Push-based snapshot feed for Anvil / fork labs (synth or QuantForge-shaped JSON).
 contract ClobVenueStub is IClobVenue {
     BookSnapshot private _snap;
     address public updater;

@@ -47,7 +47,7 @@ snap = BookSnapshot.from_mid(mid=10**18, ts=1700000000, inventory_base=0)
 print(cast_push_snapshot_cmd("0xYourClobStub", snap, private_key="0x..."))
 ```
 
-Wire QuantForge later by mapping sim metrics → `BookSnapshot` fields (`mid`, `microprice`, `inventory_base`, `ts`).
+Optional mapping from QuantForge sim metrics → `BookSnapshot` fields (`mid`, `microprice`, `inventory_base`, `ts`) uses the same JSON shape; a live daemon is out of scope for this lab.
 
 ## E2E demo (misprice → hedge → P&L)
 
@@ -71,16 +71,18 @@ python demo/e2e_hedge.py feed --steps 1 --clob-stub 0xYourClobStub
 
 `python/bridge/quantforge_feed.py` maps QuantForge-like JSON (`mid` / `inventory` / …) and will use native `quantforge` if that package is importable — never required.
 
-## ChainVenue build status
+## ChainVenue lab status
 
-1. ~~Foundry lab + CPAMM + Python differential + adapter stubs~~
-2. ~~Guarded hedge execution + Python quote engine + adversarial sims~~
-3. ~~Snapshot feed + E2E sim / Anvil `DemoHedge` (gross + gas-net logs)~~
-4. ~~Two-pool arb executor + oracle lab + IL sandbox~~
-5. **Next (ChainVenue-only):** evidence pack polish (swap trace write-up, adversarial report), optional inclusion/reorg sims
+This repo is a **portfolio-complete lab demo**. Shipped:
+
+1. Foundry lab + CPAMM + Python differential + CLOB stub feed
+2. Guarded hedge execution + Python quote engine + adversarial sims
+3. Snapshot feed + E2E sim / Anvil `DemoHedge` (gross + gas-net logs)
+4. Two-pool arb executor + oracle lab + IL sandbox
+5. Inclusion / reorg sims + evidence pack (swap walkthrough, adversarial table, CI, dashboard)
 
 ## Non-goals
 
 - Rewriting the LOB inside Solidity
-- Absorbing Fitness-App
+- Live QuantForge snapshot daemon (synth/JSON mids are enough)
 - Live mainnet MEV / sandwiches against real users

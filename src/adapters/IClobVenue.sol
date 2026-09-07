@@ -2,8 +2,8 @@
 pragma solidity ^0.8.28;
 
 /// @title IClobVenue
-/// @notice Normalized view of an off-chain CLOB (QuantForge) for cross-venue quoting.
-/// @dev Off-chain components push snapshots / proofs later. MVP: interface + stub only.
+/// @notice Normalized view of an off-chain CLOB (QuantForge-shaped) for cross-venue quoting.
+/// @dev Lab design: push-based snapshots (see ClobVenueStub). No live LOB in-solidity.
 interface IClobVenue {
     struct BookSnapshot {
         uint256 bestBid;

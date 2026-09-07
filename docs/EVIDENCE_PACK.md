@@ -1,6 +1,6 @@
 # ChainVenue evidence pack
 
-Placement demos for Project 2 (CLOB–AMM / Foundry). QuantForge is a **done sibling**; use synth/JSON mids.
+Placement demos for this CLOB–AMM / Foundry lab. QuantForge is a **done sibling**; use synth/JSON mids.
 
 ## Generate artefacts
 

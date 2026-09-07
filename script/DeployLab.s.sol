@@ -11,7 +11,7 @@ import {ClobVenueStub} from "../src/adapters/ClobVenueStub.sol";
 import {KillSwitch} from "../src/adapters/KillSwitch.sol";
 import {CrossVenueAdapter} from "../src/adapters/CrossVenueAdapter.sol";
 
-/// @notice Local Anvil deploy for EVM lab + AMM sandbox + adapter stub.
+/// @notice Local Anvil deploy for EVM lab + AMM sandbox + guarded adapter.
 /// @dev Never point at public mainnet with real funds.
 contract DeployLabScript is Script {
     function run() external {

@@ -11,10 +11,23 @@ out/
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 
-# Dotenv / secrets
+# Dotenv / secrets / key material
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+keystore/
+keystores/
+**/UTC--*
+wallet.json
+secrets/
+
+# Local Anvil noise / dumps
+.anvil_out.txt
+.anvil_err.txt
+anvil.log
+anvil-*.log
 
 # Python
 __pycache__/
